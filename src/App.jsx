@@ -8,20 +8,31 @@ import UserLogin from "./login/user/login";
 import AdminLogin from "./login/admin/login";
 import Register from "./register/register";
 
+// Dashboard / Feature Pages
+import Navbar from "./components/Navbar/Navbar";
+import Home from "./pages/Home/Home";
+import Profile from "./pages/Profile/Profile";
+import Books from "./pages/Books/Books";
+import BookManagement from "./pages/BookManagement/BookManagement";
+import Orders from "./pages/Orders/Orders";
+import MyOrders from "./pages/MyOrders/MyOrders";
+
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
-        {/* Default route redirects to User Login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Main Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/books" element={<Books />} />
+        <Route path="/book-management" element={<BookManagement />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/my-orders" element={<MyOrders />} />
 
-        {/* User Login Route */}
+        {/* Authentication Routes */}
         <Route path="/login" element={<UserLogin />} />
-
-        {/* User Registration Route */}
         <Route path="/register" element={<Register />} />
-
-        {/* Admin Login Route */}
         <Route path="/admin/login" element={<AdminLogin />} />
       </Routes>
     </Router>
