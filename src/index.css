@@ -1,11 +1,17 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --color-primary: #f5f5f5; /* Cloud Dancer */
+  --color-secondary: #1b365d; /* Deep Midnight */
+  --color-accent: #d4af37; /* Heavenly Gold */
+  --color-text: #2d2d2d; /* Charcoal Ink */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(27, 54, 93, 0.1);
+
+  font-family: "Outfit", system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color-text);
+  background-color: var(--color-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -55,6 +61,14 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.logo-img {
+  width: 150px;
+  background-color: transparent;
+  mix-blend-mode: multiply;
+  /* margin-bottom: 0.1rem; */
+  display: block;
 }
 
 @media (prefers-color-scheme: light) {

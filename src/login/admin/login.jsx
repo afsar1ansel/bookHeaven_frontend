@@ -22,6 +22,7 @@ const AdminLogin = () => {
 
   return (
     <div className="login-container">
+      <img src="/logo.png" alt="BookHeaven Logo" className="logo-img" />
       <div className="login-card">
         <div className="login-header">
           <h1>Admin Portal</h1>

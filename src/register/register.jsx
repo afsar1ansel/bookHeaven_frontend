@@ -30,6 +30,7 @@ const Register = () => {
 
   return (
     <div className="register-container">
+      <img src="/logo.png" alt="BookHeaven Logo" className="logo-img" />
       <div className="register-card">
         <div className="register-header">
           <h1>Create Account</h1>
