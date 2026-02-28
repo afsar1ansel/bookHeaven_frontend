@@ -2,20 +2,51 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./login.css";
 
+import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../../utils/baseurl";
+
 const UserLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // Simulated login
-    setTimeout(() => {
+    try {
       console.log("User login attempt:", { email });
+      const response = await fetch(`${BASE_URL}/api/user/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Email: email,
+          Password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.Name); // Using Names from response as per endpoint
+        localStorage.setItem("email", data.Email);
+        localStorage.setItem("role", data.role);
+        navigate("/");
+      } else {
+        setError(data.message || "Invalid credentials.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please check your connection.");
+      console.error("Login error:", err);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -55,6 +86,8 @@ const UserLogin = () => {
               />
             </div>
           </div>
+
+          {error && <p className="error-message">{error}</p>}
 
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? "Hang tight..." : "Continue"}

@@ -1,23 +1,53 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../../utils/baseurl";
 import "./login.css";
 
 const AdminLogin = () => {
+  console.log("AdminLogin component rendered");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
-    // Simulated login logic
-    setTimeout(() => {
-      console.log("Login attempt:", { email, password });
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Email: email,
+          Password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Store user data in localStorage
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.Username);
+        localStorage.setItem("email", data.Email);
+        localStorage.setItem("role", data.role);
+
+        // Redirect to dashboard or home
+        navigate("/");
+      } else {
+        setError(data.message || "Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      setError("An error occurred during login. Please check your connection.");
+      console.error("Login error:", err);
+    } finally {
       setIsLoading(false);
-      // alert('Login submitted (Simulated)');
-    }, 1500);
+    }
   };
 
   return (
@@ -29,7 +59,7 @@ const AdminLogin = () => {
           <p>Enter your credentials to access the dashboard</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <div className="input-wrapper">
@@ -60,7 +90,12 @@ const AdminLogin = () => {
 
           {error && <p className="error-message">{error}</p>}
 
-          <button type="submit" className="login-button" disabled={isLoading}>
+          <button
+            type="submit"
+            className="login-button"
+            disabled={isLoading}
+            onClick={() => console.log("Sign In button clicked")}
+          >
             {isLoading ? "Authenticating..." : "Sign In"}
           </button>
         </form>

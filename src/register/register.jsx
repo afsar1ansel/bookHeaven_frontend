@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { BASE_URL } from "../utils/baseurl";
 import "./register.css";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -11,21 +13,46 @@ const Register = () => {
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // Simulated registration
-    setTimeout(() => {
-      console.log("Registration data:", formData);
+    try {
+      const response = await fetch(`${BASE_URL}/api/user/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Email: formData.email,
+          Password: formData.password,
+          Name: formData.name,
+          Address: formData.address,
+          Phone: formData.phone,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || "Registration successful!");
+        navigate("/login");
+      } else {
+        setError(data.message || "Registration failed. Please try again.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please check your connection.");
+      console.error("Registration error:", err);
+    } finally {
       setIsLoading(false);
-      alert("Registration successful (Simulated)");
-    }, 1500);
+    }
   };
 
   return (
@@ -108,6 +135,8 @@ const Register = () => {
               </div>
             </div>
           </div>
+
+          {error && <p className="error-message">{error}</p>}
 
           <button
             type="submit"
