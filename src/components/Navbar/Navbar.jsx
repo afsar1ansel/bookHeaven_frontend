@@ -19,6 +19,9 @@ const Navbar = () => {
     return null;
   }
 
+  const role = localStorage.getItem("role");
+  const isAdmin = role === "admin";
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -61,23 +64,28 @@ const Navbar = () => {
             </Link>
           </li>
 
-          {/* Admin section - highlighted or separated */}
-          <li className="nav-item admin-link">
-            <Link
-              to="/book-management"
-              className={`nav-links ${location.pathname === "/book-management" ? "active" : ""}`}
-            >
-              Management
-            </Link>
-          </li>
-          <li className="nav-item admin-link">
-            <Link
-              to="/orders"
-              className={`nav-links ${location.pathname === "/orders" ? "active" : ""}`}
-            >
-              Orders
-            </Link>
-          </li>
+          {/* Admin section - only visible to admin */}
+          {isAdmin && (
+            <>
+              <li className="nav-item admin-link">
+                <Link
+                  to="/book-management"
+                  className={`nav-links ${location.pathname === "/book-management" ? "active" : ""}`}
+                >
+                  Management
+                </Link>
+              </li>
+              <li className="nav-item admin-link">
+                <Link
+                  to="/orders"
+                  className={`nav-links ${location.pathname === "/orders" ? "active" : ""}`}
+                >
+                  Orders
+                </Link>
+              </li>
+            </>
+          )}
+
           <li className="nav-item">
             <button className="logout-btn-nav" onClick={handleLogout}>
               Logout

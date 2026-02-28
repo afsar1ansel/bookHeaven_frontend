@@ -17,6 +17,8 @@ import BookManagement from "./pages/BookManagement/BookManagement";
 import Orders from "./pages/Orders/Orders";
 import MyOrders from "./pages/MyOrders/MyOrders";
 
+import ProtectedRoute from "./components/ProtectedRoute";
+
 function App() {
   return (
     <Router>
@@ -26,8 +28,26 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/books" element={<Books />} />
-        <Route path="/book-management" element={<BookManagement />} />
-        <Route path="/orders" element={<Orders />} />
+
+        {/* Protected Admin Routes */}
+        <Route
+          path="/book-management"
+          element={
+            <ProtectedRoute adminOnly>
+              <BookManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute adminOnly>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* User Routes */}
         <Route path="/my-orders" element={<MyOrders />} />
 
         {/* Authentication Routes */}
