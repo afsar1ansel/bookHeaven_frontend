@@ -59,8 +59,11 @@ const Books = () => {
           <div key={book.BookID} className="book-card">
             <img
               src={
-                book.CoverImageURL ||
-                "https://via.placeholder.com/400x600?text=No+Cover"
+                book.CoverImageURL
+                  ? `${book.CoverImageURL}?random=${book.BookID}`
+                  : `https://via.placeholder.com/400x600?text=${encodeURIComponent(
+                      book.Title,
+                    )}`
               }
               alt={book.Title}
               className="book-image"

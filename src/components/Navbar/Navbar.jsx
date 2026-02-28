@@ -1,9 +1,17 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to log out?")) {
+      localStorage.clear();
+      navigate("/login");
+    }
+  };
 
   // Hide navbar on login and register pages
   const authPages = ["/login", "/register", "/admin/login"];
@@ -69,6 +77,11 @@ const Navbar = () => {
             >
               Orders
             </Link>
+          </li>
+          <li className="nav-item">
+            <button className="logout-btn-nav" onClick={handleLogout}>
+              Logout
+            </button>
           </li>
         </ul>
       </div>
