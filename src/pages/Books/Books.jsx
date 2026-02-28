@@ -6,6 +6,8 @@ const Books = () => {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 10;
 
   useEffect(() => {
     fetchBooks();
@@ -34,6 +36,14 @@ const Books = () => {
     }
   };
 
+  // Pagination Logic
+  const indexOfLastBook = currentPage * booksPerPage;
+  const indexOfFirstBook = indexOfLastBook - booksPerPage;
+  const currentBooks = books.slice(indexOfFirstBook, indexOfLastBook);
+  const totalPages = Math.ceil(books.length / booksPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   if (isLoading) return <div className="loading-spinner">Loading books...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
@@ -45,7 +55,7 @@ const Books = () => {
       </header>
 
       <div className="books-grid">
-        {books.map((book) => (
+        {currentBooks.map((book) => (
           <div key={book.BookID} className="book-card">
             <img
               src={
@@ -75,6 +85,37 @@ const Books = () => {
           </div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="pagination-container">
+          <button
+            className="pagination-btn"
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => paginate(index + 1)}
+              className={`pagination-btn ${currentPage === index + 1 ? "active" : ""}`}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          <button
+            className="pagination-btn"
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
