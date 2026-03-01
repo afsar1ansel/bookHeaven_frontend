@@ -14,6 +14,7 @@ const Books = () => {
   const [isSearching, setIsSearching] = useState(false);
 
   // Filter States
+  const [selectedFormatFilter, setSelectedFormatFilter] = useState("All"); // "All", "Physical Copy", "Digital eBook"
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [priceRange, setPriceRange] = useState(500); // Max price default
   const [minRating, setMinRating] = useState(0);
@@ -113,9 +114,39 @@ const Books = () => {
     const bookPrice = parseFloat(book.Price) || 0;
     const matchesPrice = bookPrice <= priceRange;
 
+    // Format Type Filter (Mock logic for Physical vs Digital)
+    // Since API doesn't distinguish, we'll just apply the filter as a UI state
+    // But since it affects price... let's define how it works:
+    // If "All", show all.
+    // If "Physical" or "Digital", we still show all, but the card displays the respective price.
+    // Wait, the user said: "filter the ebook and physical books from among".
+    // If the API `Format` field actually contains "E-book" or "Hardcover", we should filter by that!
+    // Let's check if the format filter matches the actual API Format field if it's not "All".
+    // For now, let's assume Physical = ['Hardcover', 'Paperback'], Digital = ['E-book', 'Audiobook'] (or similar string matching).
+    // If the API strictly uses `Format: "E-book"`, then:
+    let matchesFormatType = true;
+    if (selectedFormatFilter === "Physical Copy") {
+      matchesFormatType =
+        book.Format &&
+        !book.Format.toLowerCase().includes("e-book") &&
+        !book.Format.toLowerCase().includes("ebook") &&
+        !book.Format.toLowerCase().includes("audio");
+    } else if (selectedFormatFilter === "Digital eBook") {
+      matchesFormatType =
+        book.Format &&
+        (book.Format.toLowerCase().includes("e-book") ||
+          book.Format.toLowerCase().includes("ebook"));
+    }
+
     const matchesRating = (book.Rating || 0) >= minRating;
 
-    return matchesSearch && matchesGenre && matchesPrice && matchesRating;
+    return (
+      matchesSearch &&
+      matchesFormatType &&
+      matchesGenre &&
+      matchesPrice &&
+      matchesRating
+    );
   });
 
   // Extract unique genres/formats for filter dropdown
@@ -160,6 +191,36 @@ const Books = () => {
       <div className="books-main-layout">
         {/* Smart Filter Sidebar */}
         <aside className="filter-sidebar">
+          <div className="filter-group">
+            <h3>Book Format</h3>
+            <div
+              className="format-toggle-group"
+              style={{ marginBottom: "1rem" }}
+            >
+              <button
+                className={`format-btn ${selectedFormatFilter === "All" ? "active" : ""}`}
+                onClick={() => setSelectedFormatFilter("All")}
+                style={{ padding: "0.5rem", fontSize: "0.9rem" }}
+              >
+                All
+              </button>
+              <button
+                className={`format-btn ${selectedFormatFilter === "Physical Copy" ? "active" : ""}`}
+                onClick={() => setSelectedFormatFilter("Physical Copy")}
+                style={{ padding: "0.5rem", fontSize: "0.9rem" }}
+              >
+                Physical
+              </button>
+              <button
+                className={`format-btn ${selectedFormatFilter === "Digital eBook" ? "active" : ""}`}
+                onClick={() => setSelectedFormatFilter("Digital eBook")}
+                style={{ padding: "0.5rem", fontSize: "0.9rem" }}
+              >
+                Digital
+              </button>
+            </div>
+          </div>
+
           <div className="filter-group">
             <h3>Genre / Format</h3>
             <select
@@ -226,6 +287,7 @@ const Books = () => {
           <button
             className="reset-filters-btn"
             onClick={() => {
+              setSelectedFormatFilter("All");
               setSelectedGenre("All");
               setPriceRange(1000);
               setMinRating(0);
@@ -287,13 +349,45 @@ const Books = () => {
                       </span>
                     </div>
                     <div className="book-meta">
-                      <span className="book-price">${book.Price}</span>
+                      <span className="book-price">
+                        $
+                        {selectedFormatFilter === "Digital eBook" ||
+                        (book.Format &&
+                          book.Format.toLowerCase().includes("e-book"))
+                          ? (parseFloat(book.Price) * 0.8).toFixed(2) // 20% discount for digital
+                          : book.Price}
+                      </span>
                       <span
                         className={`book-stock ${
-                          book.StockQuantity < 10 ? "low" : ""
+                          book.StockQuantity < 10 &&
+                          selectedFormatFilter !== "Digital eBook" &&
+                          (!book.Format ||
+                            !book.Format.toLowerCase().includes("e-book"))
+                            ? "low"
+                            : ""
                         }`}
+                        style={{
+                          backgroundColor:
+                            selectedFormatFilter === "Digital eBook" ||
+                            (book.Format &&
+                              book.Format.toLowerCase().includes("e-book"))
+                              ? "#e6f4ea"
+                              : "",
+                          color:
+                            selectedFormatFilter === "Digital eBook" ||
+                            (book.Format &&
+                              book.Format.toLowerCase().includes("e-book"))
+                              ? "#1e8e3e"
+                              : "",
+                        }}
                       >
-                        {book.StockQuantity} in stock
+                        {selectedFormatFilter === "Digital eBook" ||
+                        (book.Format &&
+                          book.Format.toLowerCase().includes("e-book"))
+                          ? "Always Available"
+                          : book.StockQuantity > 0
+                            ? `${book.StockQuantity} in stock`
+                            : "Out of Stock"}
                       </span>
                     </div>
                   </div>
@@ -406,19 +500,40 @@ const Books = () => {
               </div>
 
               <div className="modal-price-stock">
-                <span className="modal-price">${selectedBook.Price}</span>
+                <span className="modal-price">
+                  $
+                  {selectedFormatFilter === "Digital eBook" ||
+                  (selectedBook.Format &&
+                    selectedBook.Format.toLowerCase().includes("e-book"))
+                    ? (parseFloat(selectedBook.Price) * 0.8).toFixed(2) // 20% discount for digital
+                    : selectedBook.Price}
+                </span>
                 <span
                   className="modal-stock"
                   style={{
                     backgroundColor:
-                      selectedBook.StockQuantity > 0 ? "#e6f4ea" : "#fce8e6",
+                      selectedFormatFilter === "Digital eBook" ||
+                      (selectedBook.Format &&
+                        selectedBook.Format.toLowerCase().includes("e-book")) ||
+                      selectedBook.StockQuantity > 0
+                        ? "#e6f4ea"
+                        : "#fce8e6",
                     color:
-                      selectedBook.StockQuantity > 0 ? "#1e8e3e" : "#d93025",
+                      selectedFormatFilter === "Digital eBook" ||
+                      (selectedBook.Format &&
+                        selectedBook.Format.toLowerCase().includes("e-book")) ||
+                      selectedBook.StockQuantity > 0
+                        ? "#1e8e3e"
+                        : "#d93025",
                   }}
                 >
-                  {selectedBook.StockQuantity > 0
-                    ? `${selectedBook.StockQuantity} available`
-                    : "Out of Stock"}
+                  {selectedFormatFilter === "Digital eBook" ||
+                  (selectedBook.Format &&
+                    selectedBook.Format.toLowerCase().includes("e-book"))
+                    ? "Always Available"
+                    : selectedBook.StockQuantity > 0
+                      ? `${selectedBook.StockQuantity} available`
+                      : "Out of Stock"}
                 </span>
               </div>
 

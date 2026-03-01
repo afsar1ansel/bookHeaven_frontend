@@ -533,6 +533,57 @@
   font-weight: 600;
 }
 
+/* Format Selection Toggle Styles */
+.format-toggle-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #f8f9fa;
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #ebebeb;
+}
+
+.format-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.format-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  transition: transform 0.2s;
+}
+
+.format-btn:hover {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.format-btn:hover .format-icon {
+  transform: translateY(-2px);
+}
+
+.format-btn.active {
+  background: white;
+  border-color: var(--color-accent);
+  color: var(--color-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 .modal-price-stock {
   display: flex;
   justify-content: space-between;
