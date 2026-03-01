@@ -12,6 +12,12 @@ const Books = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+
+  // Filter States
+  const [selectedGenre, setSelectedGenre] = useState("All");
+  const [priceRange, setPriceRange] = useState(500); // Max price default
+  const [minRating, setMinRating] = useState(0);
+
   const booksPerPage = 10;
 
   useEffect(() => {
@@ -84,15 +90,38 @@ const Books = () => {
     setCurrentPage(1); // Reset to page 1 on search
   };
 
-  // Filtering Logic (using debounced term)
+  // Filtering Logic (using debounced term + sidebar filters)
   const filteredBooks = books.filter((book) => {
     const searchLow = debouncedSearchTerm.toLowerCase();
+
+    // Search Filter (Title, Author, or ISBN)
     const titleMatch = book.Title.toLowerCase().includes(searchLow);
     const authorMatch = book.Authors
       ? book.Authors.some((author) => author.toLowerCase().includes(searchLow))
       : false;
-    return titleMatch || authorMatch;
+    const isbnMatch = book.ISBN
+      ? book.ISBN.toLowerCase().includes(searchLow)
+      : false;
+
+    const matchesSearch = titleMatch || authorMatch || isbnMatch;
+
+    // Sidebar Filters
+    const matchesGenre =
+      selectedGenre === "All" || book.Format === selectedGenre; // Using Format as Genre for now if Genre not explicit
+
+    // Safety check on Price: parse to float before comparison
+    const bookPrice = parseFloat(book.Price) || 0;
+    const matchesPrice = bookPrice <= priceRange;
+
+    const matchesRating = (book.Rating || 0) >= minRating;
+
+    return matchesSearch && matchesGenre && matchesPrice && matchesRating;
   });
+
+  // Extract unique genres/formats for filter dropdown
+  const genres = ["All", ...new Set(books.map((book) => book.Format))].filter(
+    Boolean,
+  );
 
   // Pagination Logic
   const indexOfLastBook = currentPage * booksPerPage;
@@ -118,7 +147,7 @@ const Books = () => {
           <input
             type="text"
             className="search-input"
-            placeholder="Search by title or author name..."
+            placeholder="Search by title, author, or ISBN..."
             value={searchTerm}
             onChange={handleSearch}
           />
@@ -128,51 +157,156 @@ const Books = () => {
         </div>
       </div>
 
-      <div className="books-grid">
-        {currentBooks.length > 0 ? (
-          currentBooks.map((book) => (
-            <div
-              key={book.BookID}
-              className="book-card"
-              onClick={() => handleCardClick(book)}
-              style={{ cursor: "pointer" }}
+      <div className="books-main-layout">
+        {/* Smart Filter Sidebar */}
+        <aside className="filter-sidebar">
+          <div className="filter-group">
+            <h3>Genre / Format</h3>
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="filter-select"
             >
-              <img
-                src={
-                  book.CoverImageURL
-                    ? `${book.CoverImageURL}?random=${book.BookID}`
-                    : `https://via.placeholder.com/400x600?text=${encodeURIComponent(
-                        book.Title,
-                      )}`
-                }
-                alt={book.Title}
-                className="book-image"
-              />
-              <div className="book-info">
-                <h2 className="book-title">{book.Title}</h2>
-                <p className="book-authors">
-                  by {book.Authors ? book.Authors.join(", ") : "Unknown Author"}
-                </p>
-                <p className="book-isbn">ISBN: {book.ISBN}</p>
-                <div className="book-meta">
-                  <span className="book-price">${book.Price}</span>
-                  <span
-                    className={`book-stock ${
-                      book.StockQuantity < 10 ? "low" : ""
-                    }`}
-                  >
-                    {book.StockQuantity} in stock
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="no-results">
-            <h3>No books found matching "{searchTerm}"</h3>
-            <p>Try searching with a different title or author name.</p>
+              {genres.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
           </div>
-        )}
+
+          <div className="filter-group">
+            <h3>Price Range (Up to ${priceRange})</h3>
+            <input
+              type="range"
+              min="0"
+              max="1000"
+              step="10"
+              value={priceRange}
+              onChange={(e) => setPriceRange(Number(e.target.value))}
+              className="filter-range"
+            />
+            <div className="price-labels">
+              <span>$0</span>
+              <span>$1000</span>
+            </div>
+          </div>
+
+          <div className="filter-group">
+            <h3>Minimum Rating</h3>
+            <div
+              className="rating-filter"
+              style={{
+                flexDirection: "row",
+                gap: "0.2rem",
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    className={`star-btn ${minRating >= star ? "active" : ""}`}
+                    onClick={() => setMinRating(star === minRating ? 0 : star)}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <span
+                className="rating-text"
+                style={{ marginTop: 0, marginLeft: "0.5rem" }}
+              >
+                {minRating > 0 ? `${minRating}+ Stars` : "Any Rating"}
+              </span>
+            </div>
+          </div>
+
+          <button
+            className="reset-filters-btn"
+            onClick={() => {
+              setSelectedGenre("All");
+              setPriceRange(1000);
+              setMinRating(0);
+              setSearchTerm("");
+            }}
+          >
+            Reset All Filters
+          </button>
+        </aside>
+
+        <div className="books-content-area">
+          <div className="books-grid">
+            {currentBooks.length > 0 ? (
+              currentBooks.map((book) => (
+                <div
+                  key={book.BookID}
+                  className="book-card"
+                  onClick={() => handleCardClick(book)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img
+                    src={
+                      book.CoverImageURL
+                        ? `${book.CoverImageURL}?random=${book.BookID}`
+                        : `https://via.placeholder.com/400x600?text=${encodeURIComponent(
+                            book.Title,
+                          )}`
+                    }
+                    alt={book.Title}
+                    className="book-image"
+                  />
+                  <div className="book-info">
+                    <h2 className="book-title">{book.Title}</h2>
+                    <p className="book-authors">
+                      by{" "}
+                      {book.Authors
+                        ? book.Authors.join(", ")
+                        : "Unknown Author"}
+                    </p>
+                    <p className="book-isbn">ISBN: {book.ISBN}</p>
+                    <div
+                      className="book-rating"
+                      style={{ marginBottom: "0.5rem" }}
+                    >
+                      <span style={{ color: "#ffc107", fontSize: "1.2rem" }}>
+                        {"★".repeat(book.Rating || 0)}
+                        <span style={{ color: "#e4e5e9" }}>
+                          {"★".repeat(5 - (book.Rating || 0))}
+                        </span>
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "0.85rem",
+                          color: "#666",
+                          marginLeft: "0.25rem",
+                        }}
+                      >
+                        ({book.Rating || 0})
+                      </span>
+                    </div>
+                    <div className="book-meta">
+                      <span className="book-price">${book.Price}</span>
+                      <span
+                        className={`book-stock ${
+                          book.StockQuantity < 10 ? "low" : ""
+                        }`}
+                      >
+                        {book.StockQuantity} in stock
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-results">
+                <h3>No books found matching "{searchTerm}"</h3>
+                <p>Try searching with a different title or author name.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Pagination Controls */}
@@ -238,6 +372,38 @@ const Books = () => {
                   ? selectedBook.Authors.join(", ")
                   : "Unknown Author"}
               </p>
+
+              <div
+                className="modal-rating"
+                style={{
+                  marginBottom: "1.5rem",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    color: "#ffc107",
+                    fontSize: "1.5rem",
+                    letterSpacing: "2px",
+                  }}
+                >
+                  {"★".repeat(selectedBook.Rating || 0)}
+                  <span style={{ color: "#e4e5e9" }}>
+                    {"★".repeat(5 - (selectedBook.Rating || 0))}
+                  </span>
+                </span>
+                <span
+                  style={{
+                    fontSize: "1rem",
+                    color: "#666",
+                    marginLeft: "0.5rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  ({selectedBook.Rating || 0} out of 5)
+                </span>
+              </div>
 
               <div className="modal-price-stock">
                 <span className="modal-price">${selectedBook.Price}</span>
