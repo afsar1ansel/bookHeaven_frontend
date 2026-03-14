@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BASE_URL } from "../../utils/baseurl";
+import { addToCart } from "../../utils/orderApi";
 import "./Books.css";
 
 const Books = () => {
@@ -12,6 +13,7 @@ const Books = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [cartMessage, setCartMessage] = useState({ text: "", type: "" });
 
   // Filter States
   const [selectedFormatFilter, setSelectedFormatFilter] = useState("All"); // "All", "Physical Copy", "Digital eBook"
@@ -79,6 +81,18 @@ const Books = () => {
       console.error("Failed to fetch book details", err);
     } finally {
       setIsDetailLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (e, bookId) => {
+    e.stopPropagation();
+    try {
+      await addToCart(bookId, 1);
+      setCartMessage({ text: "Added to cart successfully!", type: "success" });
+      setTimeout(() => setCartMessage({ text: "", type: "" }), 3000);
+    } catch (err) {
+      setCartMessage({ text: err.message || "Failed to add to cart", type: "error" });
+      setTimeout(() => setCartMessage({ text: "", type: "" }), 3000);
     }
   };
 
@@ -170,6 +184,12 @@ const Books = () => {
       <header className="books-header">
         <h1>Our Book Collection</h1>
         <p>Explore a wide variety of titles across all genres.</p>
+        
+        {cartMessage.text && (
+          <div className={`cart-notification ${cartMessage.type}`}>
+            {cartMessage.text}
+          </div>
+        )}
       </header>
 
       <div className="search-container">
@@ -390,6 +410,13 @@ const Books = () => {
                             : "Out of Stock"}
                       </span>
                     </div>
+                    <button 
+                      className="add-to-cart-btn-grid"
+                      onClick={(e) => handleAddToCart(e, book.BookID)}
+                      disabled={book.StockQuantity === 0 && !book.Format?.toLowerCase().includes("e-book")}
+                    >
+                      Add to Cart
+                    </button>
                   </div>
                 </div>
               ))
@@ -545,6 +572,14 @@ const Books = () => {
                   "No description available for this book."
                 )}
               </div>
+
+              <button 
+                className="modal-add-to-cart-btn"
+                onClick={(e) => handleAddToCart(e, selectedBook.BookID)}
+                disabled={selectedBook.StockQuantity === 0 && !selectedBook.Format?.toLowerCase().includes("e-book")}
+              >
+                Add to Cart
+              </button>
 
               <div className="modal-extra-details">
                 <div className="modal-stat">

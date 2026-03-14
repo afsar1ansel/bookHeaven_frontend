@@ -16,6 +16,7 @@ import Books from "./pages/Books/Books";
 import BookManagement from "./pages/BookManagement/BookManagement";
 import Orders from "./pages/Orders/Orders";
 import MyOrders from "./pages/MyOrders/MyOrders";
+import Cart from "./pages/Cart/Cart";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -49,6 +50,7 @@ function App() {
 
         {/* User Routes */}
         <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/cart" element={<Cart />} />
 
         {/* Authentication Routes */}
         <Route path="/login" element={<UserLogin />} />

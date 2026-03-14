@@ -49,6 +49,14 @@ const Navbar = () => {
           </li>
           <li className="nav-item">
             <Link
+              to="/cart"
+              className={`nav-links ${location.pathname === "/cart" ? "active" : ""}`}
+            >
+              Cart
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link
               to="/my-orders"
               className={`nav-links ${location.pathname === "/my-orders" ? "active" : ""}`}
             >
